@@ -91,7 +91,7 @@ export class Grid extends Component<GridProps, GridState> {
 
         // Calculate the score.
         const multiplier = 8 * Math.pow(0.5, this.state.attempt)
-        const scoreDelta = Math.max(1, selectionValue * multiplier)
+        const scoreDelta = Math.max(1, Math.ceil(selectionValue * multiplier))
         console.log("Score:", multiplier, scoreDelta)
         const newScore = this.state.score + scoreDelta
 
@@ -252,7 +252,7 @@ export class Grid extends Component<GridProps, GridState> {
 
             </div>
             <div key="grid" className="grid"
-                style={{width: CELL_SIZE * GRID_WIDTH, height: CELL_SIZE * GRID_HEIGHT }}
+                style={{width: CELL_SIZE * GRID_WIDTH + 2, height: CELL_SIZE * GRID_HEIGHT + 2 }}
                 >
                 { cells }
                 <div key="interactor" className="interactor"
