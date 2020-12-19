@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Component } from "react"
 
-export type CellState = "normal" | "selected" | "assigned"
+export type CellState = "normal" | "selected" | "assigned" | "selected-error"
 
 interface CellProps {
     x: number,
@@ -43,5 +43,6 @@ function colorForState(state: CellState): string {
         case "normal": return "gray"
         case "selected": return "green"
         case "assigned": return "blue"
+        case "selected-error": return "red"
     }
 }
