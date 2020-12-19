@@ -26,6 +26,9 @@ interface GridState {
     targetIndex: number
     /** Currently built up amount towards the target. */
     value: number
+    attempt: number
+
+    score: number
 }
 
 
@@ -35,6 +38,8 @@ export class Grid extends Component<GridProps, GridState> {
         gridCellData: initializeGridData(GRID_WIDTH, GRID_HEIGHT),
         targetIndex: 0,
         value: 0,
+        attempt: 0,
+        score: 0,
     }
 
     onCellDown(x: number, y: number) {
@@ -82,6 +87,12 @@ export class Grid extends Component<GridProps, GridState> {
         // Exceeding the target is not allowed.
         if (newValue > target) return
 
+        // Calculate the score.
+        const multiplier = 4 * Math.pow(0.5, this.state.attempt)
+        const scoreDelta = selectionValue * multiplier
+        console.log("Score:", multiplier, scoreDelta)
+        const newScore = this.state.score + scoreDelta
+
         // Mark the grid cell data.
         for (let x = s.minX; x <= s.maxX; x++) {
             for (let y = s.minY; y <= s.maxY; y++) {
@@ -94,10 +105,14 @@ export class Grid extends Component<GridProps, GridState> {
             this.setState({
                 targetIndex: this.state.targetIndex + 1,
                 value: 0,
+                score: newScore,
+                attempt: 0,
             })
         } else {
             this.setState({
-                value: this.state.value + selectionValue
+                value: this.state.value + selectionValue,
+                score: newScore,
+                attempt: this.state.attempt + 1
             })
         }
     }
@@ -189,10 +204,11 @@ export class Grid extends Component<GridProps, GridState> {
             }
         }
 
-        return <div key="container" onMouseUp={ () => this.onOutsideUp()}>
+        return <div key="container" className="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
                 <div>Target: { TARGETS[this.state.targetIndex] }</div>
                 <div className={valueCssClass}>Value: { this.state.value + estimatedValue }</div>
+                <div>Score: { this.state.score }</div>
             </div>
             <div key="grid" className="grid">
                 { cells }

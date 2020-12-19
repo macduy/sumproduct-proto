@@ -20,6 +20,7 @@ interface State {
 
 export class Cell extends Component<CellProps, State> {
     render() {
+        // TODO: Touchmove needs work.
         return <div
             className="cell"
             style={{
@@ -32,6 +33,9 @@ export class Cell extends Component<CellProps, State> {
             onMouseDown={() => this.props.onMouseDown()}
             onMouseMove={() => this.props.onMouseMove()}
             onMouseUp={() => this.props.onMouseUp()}
+            onTouchStart={(e) => this.props.onMouseDown()}
+            onTouchMove={(e) => this.props.onMouseMove()}
+            onTouchEnd={(e) => this.props.onMouseUp()}
         >
 
         </div>
