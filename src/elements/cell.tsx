@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Component } from "react"
 
-export type CellState = "normal" | "selected" | "assigned" | "selected-error"
+export type CellState = "normal" | "selected" | "assigned" | "selected-error" | "selected-error-assigned"
 
 interface CellProps {
     x: number,
@@ -18,12 +18,12 @@ export class Cell extends Component<CellProps, State> {
     render() {
         // TODO: Touchmove needs work.
         const animatable = this.props.state != "selected" && this.props.state != "selected-error"
-        const assigned = this.props.state == "assigned"
+        const assigned = this.props.state == "assigned" || this.props.state == "selected-error-assigned"
         return <div
             className={`cell ${animatable ? "animatable" : ""} ${assigned ? "assigned" : ""}`}
             style={{
-                width: this.props.size,
-                height: this.props.size,
+                width: this.props.size + 1,
+                height: this.props.size + 1,
                 left: this.props.x,
                 top: this.props.y,
                 background: colorForState(this.props.state)
@@ -36,9 +36,10 @@ export class Cell extends Component<CellProps, State> {
 
 function colorForState(state: CellState): string {
     switch (state) {
-        case "normal": return "gray"
-        case "selected": return "green"
-        case "assigned": return "blue"
+        case "normal": return "#aaaaaa"
+        case "selected": return "#4895de"
+        case "assigned": return "#39b051"
         case "selected-error": return "red"
+        case "selected-error-assigned": return "red"
     }
 }

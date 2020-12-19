@@ -24,15 +24,24 @@
     display: block;
     position: absolute;
 
-    border: 5px solid white;
+    border: 8px solid white;
+    border-radius: 12px;
+
+    margin-left: 1px;
+    margin-top: 1px;
 
     &.assigned {
-        border-width: 0px;
+        border-width: 1px !important;
+        border-radius: 0px;
+        border-color: green;
+        margin-left: 0px;
+        margin-top: 0px;
     }
 
 
     &.animatable {
-        transition: background-color 300ms, border-width 100ms;
+        border-width: 10px;
+        transition: background-color 300ms, border-width 150ms, border-radius 350ms, border-color 100ms;
     }
 }
 

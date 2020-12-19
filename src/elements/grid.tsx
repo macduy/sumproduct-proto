@@ -165,6 +165,7 @@ export class Grid extends Component<GridProps, GridState> {
 
         if (isSelected) {
             if (!isSelectionClean) {
+                if (isAssigned) return "selected-error-assigned"
                 return "selected-error"
             }
             return "selected"
