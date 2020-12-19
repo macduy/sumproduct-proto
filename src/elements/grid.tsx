@@ -174,10 +174,22 @@ export class Grid extends Component<GridProps, GridState> {
         return "normal"
     }
 
+    private clampX(x: number): number {
+        if (x >= GRID_WIDTH) return GRID_WIDTH - 1
+        if (x < 0) return 0
+        return x
+    }
+
+    private clampY(y: number): number {
+        if (y >= GRID_HEIGHT) return GRID_HEIGHT - 1
+        if (y < 0) return 0
+        return y
+    }
+
     private convertToCellCoords(e: React.MouseEvent): [number, number] {
         return [
-            Math.floor(e.nativeEvent.offsetX / CELL_SIZE),
-            Math.floor(e.nativeEvent.offsetY / CELL_SIZE),
+            this.clampX(Math.floor(e.nativeEvent.offsetX / CELL_SIZE)),
+            this.clampY(Math.floor(e.nativeEvent.offsetY / CELL_SIZE)),
         ]
     }
 
@@ -186,8 +198,8 @@ export class Grid extends Component<GridProps, GridState> {
         const offsetX = e.touches[0].pageX - rect.left
         const offsetY = e.touches[0].pageY - rect.top
         return [
-            Math.floor(offsetX / CELL_SIZE),
-            Math.floor(offsetY / CELL_SIZE),
+            this.clampX(Math.floor(offsetX / CELL_SIZE)),
+            this.clampY(Math.floor(offsetY / CELL_SIZE)),
         ]
     }
 
