@@ -1,0 +1,45 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Startup",
+            "type": "shell",
+            "dependsOn": [
+                "Build & Watch",
+                "Serve HTTP"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "isBackground": true
+        },
+        {
+            "label": "Build & Watch",
+            "type": "shell",
+            "command": "npx webpack --config webpack.config.js --watch --mode=production",
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch"
+            ],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "revealProblems": "onProblem"
+            }
+        },
+        {
+            "label": "Serve HTTP",
+            "type": "shell",
+            "command": "python3 -m http.server",
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceRoot}/game"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

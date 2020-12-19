@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      // Language
+      "noImplicitAny": true,
+      "noUnusedLocals": true,
+      "strictNullChecks": true,
+      "allowJs": false,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "jsx": "react",
+
+      // Transpilation
+      "moduleResolution": "node",
+      "module": "es6",
+      "target": "es5",
+      "lib": ["es2015", "dom"],
+
+      // Project URL
+      "baseUrl": "./src",
+
+      "outDir": "./tsBuild"
+    },
+  }
