@@ -22,7 +22,10 @@ interface GridState {
 
     gridCellData: GridCellData[][]
 
+    /** Index of the current target. */
     targetIndex: number
+    /** Currently built up amount towards the target. */
+    value: number
 }
 
 
@@ -31,6 +34,7 @@ export class Grid extends Component<GridProps, GridState> {
     state: GridState = {
         gridCellData: initializeGridData(GRID_WIDTH, GRID_HEIGHT),
         targetIndex: 0,
+        value: 0,
     }
 
     onCellDown(x: number, y: number) {
@@ -46,7 +50,7 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onCellUp(x: number, y: number) {
-        this.executeSelection()
+        this.commitSelection()
         this.setState({
             selectionStart: undefined,
             selectionEnd: undefined,
@@ -54,14 +58,14 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onOutsideUp() {
-        this.executeSelection()
+        this.commitSelection()
         this.setState({
             selectionStart: undefined,
             selectionEnd: undefined,
         })
     }
 
-    executeSelection() {
+    commitSelection() {
         const s = this.getNormalizedSelection()
         if (!s) return
 
@@ -69,13 +73,33 @@ export class Grid extends Component<GridProps, GridState> {
             return
         }
 
+        // Calculate the added value.
+        const selectionValue = (s.maxX - s.minX + 1) * (s.maxY - s.minY + 1)
+
+        const target = TARGETS[this.state.targetIndex]
+        const newValue = this.state.value + selectionValue
+
+        // Exceeding the target is not allowed.
+        if (newValue > target) return
+
+        // Mark the grid cell data.
         for (let x = s.minX; x <= s.maxX; x++) {
             for (let y = s.minY; y <= s.maxY; y++) {
                 this.state.gridCellData[x][y].block = 1
             }
         }
 
-        this.setState(this.state)
+        if (newValue == target) {
+            // Target has been met. Advance target.
+            this.setState({
+                targetIndex: this.state.targetIndex + 1,
+                value: 0,
+            })
+        } else {
+            this.setState({
+                value: this.state.value + selectionValue
+            })
+        }
     }
 
     private isInsideSelection(x: number, y: number): boolean {
@@ -130,12 +154,26 @@ export class Grid extends Component<GridProps, GridState> {
         } else if (isAssigned) {
             return "assigned"
         }
-        return "normal"    }
+        return "normal"
+    }
 
     render() {
         let cells: React.ReactChild[] = []
 
         const isSelectionClean = this.checkSelectionClean()
+        const s = this.getNormalizedSelection()
+
+        let estimatedValue
+        if (isSelectionClean && s) {
+            estimatedValue = (s.maxX - s.minX + 1) * (s.maxY - s.minY + 1)
+        } else {
+            estimatedValue = 0
+        }
+
+        const target = TARGETS[this.state.targetIndex]
+        const isSelectionTooLarge = this.state.value + estimatedValue > target
+
+        const valueCssClass = estimatedValue == 0 ? "" : (isSelectionTooLarge ? "text-danger" : "text-success")
 
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
@@ -143,7 +181,7 @@ export class Grid extends Component<GridProps, GridState> {
                     x={x * CELL_SIZE}
                     y={y * CELL_SIZE}
                     size={ CELL_SIZE }
-                    state={ this.determineCellState(x, y, isSelectionClean) }
+                    state={ this.determineCellState(x, y, isSelectionClean && !isSelectionTooLarge) }
                     onMouseDown={ () => this.onCellDown(x, y) }
                     onMouseUp={ () => this.onCellUp(x, y) }
                     onMouseMove={ () => this.onCellMove(x, y) }
@@ -153,7 +191,8 @@ export class Grid extends Component<GridProps, GridState> {
 
         return <div key="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
-                Target: { TARGETS[this.state.targetIndex] }
+                <div>Target: { TARGETS[this.state.targetIndex] }</div>
+                <div className={valueCssClass}>Value: { this.state.value + estimatedValue }</div>
             </div>
             <div key="grid" className="grid">
                 { cells }
