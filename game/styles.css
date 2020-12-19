@@ -1,1 +1,1 @@
-.cell,.no-user-select{user-select:none}.cell{display:block;position:absolute}.grid{user-select:none;position:fixed;width:100%;height:100%}
+.no-user-select{user-select:none}.container{position:fixed;width:100%;height:100%}.grid{position:relative}.cell,.grid{user-select:none}.cell{display:block;position:absolute}

@@ -11,6 +11,8 @@ const GRID_WIDTH = 10
 const GRID_HEIGHT = 10
 const CELL_SIZE = 50
 
+const TARGETS = [36, 24, 12, 18]
+
 interface GridProps {
 }
 
@@ -19,13 +21,16 @@ interface GridState {
     selectionEnd?: { x: number, y: number }
 
     gridCellData: GridCellData[][]
+
+    targetIndex: number
 }
 
 
 
 export class Grid extends Component<GridProps, GridState> {
     state: GridState = {
-        gridCellData: initializeGridData(GRID_WIDTH, GRID_HEIGHT)
+        gridCellData: initializeGridData(GRID_WIDTH, GRID_HEIGHT),
+        targetIndex: 0,
     }
 
     onCellDown(x: number, y: number) {
@@ -146,8 +151,13 @@ export class Grid extends Component<GridProps, GridState> {
             }
         }
 
-        return <div key="grid" className="grid" onMouseUp={ () => this.onOutsideUp()}>
-            { cells }
+        return <div key="container" onMouseUp={ () => this.onOutsideUp()}>
+            <div className="header">
+                Target: { TARGETS[this.state.targetIndex] }
+            </div>
+            <div key="grid" className="grid">
+                { cells }
+            </div>
         </div>
     }
 }
