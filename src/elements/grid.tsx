@@ -236,9 +236,20 @@ export class Grid extends Component<GridProps, GridState> {
 
         return <div key="container" className="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
-                <div>Target: { TARGETS[this.state.targetIndex] }</div>
-                <div className={valueCssClass}>Value: { this.state.value + estimatedValue }</div>
-                <div>Score: { this.state.score }</div>
+                <div className="value-box">
+                    <h5>Target</h5>
+                    <h3>{ TARGETS[this.state.targetIndex] }</h3>
+                </div>
+                <div className="value-box">
+                    <h5>Value</h5>
+                    <h3 className={valueCssClass}>{ this.state.value + estimatedValue }</h3>
+                </div>
+                <div className="value-box">
+                    <h5>Score</h5>
+                    <h3>{ this.state.score }</h3>
+                </div>
+
+
             </div>
             <div key="grid" className="grid"
                 style={{width: CELL_SIZE * GRID_WIDTH, height: CELL_SIZE * GRID_HEIGHT }}
