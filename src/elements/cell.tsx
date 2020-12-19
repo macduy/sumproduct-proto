@@ -8,10 +8,6 @@ interface CellProps {
     y: number,
     size: number,
     state: CellState,
-
-    onMouseDown: () => void
-    onMouseMove: () => void
-    onMouseUp: () => void
 }
 
 interface State {
@@ -21,8 +17,10 @@ interface State {
 export class Cell extends Component<CellProps, State> {
     render() {
         // TODO: Touchmove needs work.
+        const animatable = this.props.state != "selected" && this.props.state != "selected-error"
+        const assigned = this.props.state == "assigned"
         return <div
-            className="cell"
+            className={`cell ${animatable ? "animatable" : ""} ${assigned ? "assigned" : ""}`}
             style={{
                 width: this.props.size,
                 height: this.props.size,
@@ -30,12 +28,6 @@ export class Cell extends Component<CellProps, State> {
                 top: this.props.y,
                 background: colorForState(this.props.state)
             }}
-            onMouseDown={() => this.props.onMouseDown()}
-            onMouseMove={() => this.props.onMouseMove()}
-            onMouseUp={() => this.props.onMouseUp()}
-            onTouchStart={(e) => this.props.onMouseDown()}
-            onTouchMove={(e) => this.props.onMouseMove()}
-            onTouchEnd={(e) => this.props.onMouseUp()}
         >
 
         </div>

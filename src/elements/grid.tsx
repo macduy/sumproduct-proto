@@ -9,9 +9,9 @@ interface GridCellData {
 
 const GRID_WIDTH = 10
 const GRID_HEIGHT = 10
-const CELL_SIZE = 50
+const CELL_SIZE = 35
 
-const TARGETS = [36, 24, 12, 18]
+const TARGETS = [36, 29, 12, 18]
 
 interface GridProps {
 }
@@ -49,12 +49,14 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onCellMove(x: number, y: number) {
+        if (!this.state.selectionStart) return
+
         this.setState({
             selectionEnd: { x, y }
         })
     }
 
-    onCellUp(x: number, y: number) {
+    onCellUp() {
         this.commitSelection()
         this.setState({
             selectionStart: undefined,
@@ -88,8 +90,8 @@ export class Grid extends Component<GridProps, GridState> {
         if (newValue > target) return
 
         // Calculate the score.
-        const multiplier = 4 * Math.pow(0.5, this.state.attempt)
-        const scoreDelta = selectionValue * multiplier
+        const multiplier = 8 * Math.pow(0.5, this.state.attempt)
+        const scoreDelta = Math.max(1, selectionValue * multiplier)
         console.log("Score:", multiplier, scoreDelta)
         const newScore = this.state.score + scoreDelta
 
@@ -172,6 +174,23 @@ export class Grid extends Component<GridProps, GridState> {
         return "normal"
     }
 
+    private convertToCellCoords(e: React.MouseEvent): [number, number] {
+        return [
+            Math.floor(e.nativeEvent.offsetX / CELL_SIZE),
+            Math.floor(e.nativeEvent.offsetY / CELL_SIZE),
+        ]
+    }
+
+    private convertTouchToCellCoords(e: React.TouchEvent): [number, number] {
+        const rect = (e.nativeEvent.target as any).getBoundingClientRect()
+        const offsetX = e.touches[0].pageX - rect.left
+        const offsetY = e.touches[0].pageY - rect.top
+        return [
+            Math.floor(offsetX / CELL_SIZE),
+            Math.floor(offsetY / CELL_SIZE),
+        ]
+    }
+
     render() {
         let cells: React.ReactChild[] = []
 
@@ -195,11 +214,9 @@ export class Grid extends Component<GridProps, GridState> {
                 cells.push(<Cell
                     x={x * CELL_SIZE}
                     y={y * CELL_SIZE}
+                    key={`${x}_${y}`}
                     size={ CELL_SIZE }
                     state={ this.determineCellState(x, y, isSelectionClean && !isSelectionTooLarge) }
-                    onMouseDown={ () => this.onCellDown(x, y) }
-                    onMouseUp={ () => this.onCellUp(x, y) }
-                    onMouseMove={ () => this.onCellMove(x, y) }
                 />)
             }
         }
@@ -210,8 +227,19 @@ export class Grid extends Component<GridProps, GridState> {
                 <div className={valueCssClass}>Value: { this.state.value + estimatedValue }</div>
                 <div>Score: { this.state.score }</div>
             </div>
-            <div key="grid" className="grid">
+            <div key="grid" className="grid"
+                style={{width: CELL_SIZE * GRID_WIDTH, height: CELL_SIZE * GRID_HEIGHT }}
+                >
                 { cells }
+                <div key="interactor" className="interactor"
+                    onMouseDown={(e) => this.onCellDown(...this.convertToCellCoords(e)) }
+                    onMouseUp={(e) => this.onCellUp() }
+                    onMouseMove={(e) => this.onCellMove(...this.convertToCellCoords(e)) }
+                    onTouchStart={(e) => this.onCellDown(...this.convertTouchToCellCoords(e)) }
+                    onTouchEnd={(e) => this.onCellUp() }
+                    onTouchMove={(e) => this.onCellMove(...this.convertTouchToCellCoords(e)) }
+
+                    />
             </div>
         </div>
     }

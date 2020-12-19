@@ -8,7 +8,10 @@
     height: 100%;
 }
 
-.header {
+.interactor {
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .grid {
@@ -20,6 +23,17 @@
     .no-user-select;
     display: block;
     position: absolute;
+
+    border: 5px solid white;
+
+    &.assigned {
+        border-width: 0px;
+    }
+
+
+    &.animatable {
+        transition: background-color 300ms, border-width 100ms;
+    }
 }
 
 
