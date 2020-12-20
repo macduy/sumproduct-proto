@@ -1,4 +1,5 @@
 import { Grid } from "elements/grid"
+import { BASE_LEVELS } from "levels/base"
 import * as React from "react"
 import { Component } from "react"
 
@@ -13,7 +14,7 @@ interface AppState {
 export class App extends Component<AppProps, AppState> {
     render() {
         return <div>
-            <Grid />
+            <Grid levelPack={BASE_LEVELS} />
         </div>
     }
 }

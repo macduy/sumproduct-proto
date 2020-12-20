@@ -1,6 +1,8 @@
 import { Cell, CellState } from "elements/cell"
+import { LevelPack, LevelSpec } from "levels"
 import * as React from "react"
 import { Component } from "react"
+import { iterate, XYSelection } from "types"
 
 
 interface GridCellData {
@@ -11,9 +13,8 @@ const GRID_WIDTH = 10
 const GRID_HEIGHT = 10
 const CELL_SIZE = 35
 
-const TARGETS = [36, 29, 12, 18]
-
 interface GridProps {
+    levelPack: LevelPack
 }
 
 interface GridState {
@@ -22,6 +23,9 @@ interface GridState {
 
     gridCellData: GridCellData[][]
 
+    /** Current level. */
+    currentLevel: number
+
     /** Index of the current target. */
     targetIndex: number
     /** Currently built up amount towards the target. */
@@ -29,20 +33,31 @@ interface GridState {
     attempt: number
 
     score: number
+
 }
 
 
 
 export class Grid extends Component<GridProps, GridState> {
-    state: GridState = {
-        gridCellData: initializeGridData(GRID_WIDTH, GRID_HEIGHT),
-        targetIndex: 0,
-        value: 0,
-        attempt: 0,
-        score: 0,
+    get currentLevel(): LevelSpec {
+        return this.props.levelPack.levels[this.state.currentLevel]
+    }
+
+    constructor(props: GridProps) {
+        super(props)
+        this.state = {
+            currentLevel: 0,
+            gridCellData: this.createGridCellDataForLevel(0),
+            targetIndex: 0,
+            value: 0,
+            attempt: 0,
+            score: 0,
+        }
     }
 
     onCellDown(x: number, y: number) {
+        if (this.state.gridCellData[x][y].block === undefined) return
+
         this.setState({
             selectionStart: { x, y }
         })
@@ -50,6 +65,8 @@ export class Grid extends Component<GridProps, GridState> {
 
     onCellMove(x: number, y: number) {
         if (!this.state.selectionStart) return
+
+        if (this.state.gridCellData[x][y].block === undefined) return
 
         this.setState({
             selectionEnd: { x, y }
@@ -83,7 +100,7 @@ export class Grid extends Component<GridProps, GridState> {
         // Calculate the added value.
         const selectionValue = (s.maxX - s.minX + 1) * (s.maxY - s.minY + 1)
 
-        const target = TARGETS[this.state.targetIndex]
+        const target = this.currentLevel.targets[this.state.targetIndex]
         const newValue = this.state.value + selectionValue
 
         // Exceeding the target is not allowed.
@@ -95,28 +112,50 @@ export class Grid extends Component<GridProps, GridState> {
         console.log("Score:", multiplier, scoreDelta)
         const newScore = this.state.score + scoreDelta
 
-        // Mark the grid cell data.
-        for (let x = s.minX; x <= s.maxX; x++) {
-            for (let y = s.minY; y <= s.maxY; y++) {
-                this.state.gridCellData[x][y].block = 1
-            }
-        }
-
         if (newValue == target) {
             // Target has been met. Advance target.
-            this.setState({
-                targetIndex: this.state.targetIndex + 1,
-                value: 0,
-                score: newScore,
-                attempt: 0,
-            })
+            if ((this.state.targetIndex + 1) < this.currentLevel.targets.length) {
+                // Target has been met. Advance target.
+                console.log("Advance target")
+                this.setState({
+                    targetIndex: this.state.targetIndex + 1,
+                    value: 0,
+                    score: newScore,
+                    attempt: 0,
+                })
+            } else {
+                // Advance level.
+                console.log("Advance level")
+                this.setState({
+                    currentLevel: this.state.currentLevel + 1,
+                    gridCellData: this.createGridCellDataForLevel(this.state.currentLevel + 1),
+                    targetIndex: 0,
+                    value: 0,
+                    attempt: 0,
+                })
+            }
         } else {
+            // Mark the grid cell data.
+            console.log("continue")
+            iterate(s, (x, y) => this.state.gridCellData[x][y].block = 1)
             this.setState({
                 value: this.state.value + selectionValue,
                 score: newScore,
                 attempt: this.state.attempt + 1
             })
         }
+    }
+
+    private createGridCellDataForLevel(index: number): GridCellData[][] {
+        let gridCellData = initializeGridData(GRID_WIDTH, GRID_HEIGHT)
+
+        const levelSpec = this.props.levelPack.levels[index]
+
+        for (const emptyCellsSpec of levelSpec.setup.emptyCells) {
+            iterate(emptyCellsSpec, (x, y) => { gridCellData[x][y].block = 0 })
+        }
+
+        return gridCellData
     }
 
     private isInsideSelection(x: number, y: number): boolean {
@@ -140,7 +179,7 @@ export class Grid extends Component<GridProps, GridState> {
         return true
     }
 
-    private getNormalizedSelection(): { minX: number, maxX: number, minY: number, maxY: number} | undefined {
+    private getNormalizedSelection(): XYSelection | undefined {
         if (!this.state.selectionStart) return undefined
         if (!this.state.selectionEnd) {
             return {
@@ -161,7 +200,8 @@ export class Grid extends Component<GridProps, GridState> {
 
     private determineCellState(x: number, y: number, isSelectionClean: boolean): CellState {
         const isSelected = this.isInsideSelection(x, y)
-        const isAssigned = this.state.gridCellData[x][y].block !== undefined
+        const isNone = this.state.gridCellData[x][y].block === undefined
+        const isAssigned = !isNone && this.state.gridCellData[x][y].block! > 0
 
         if (isSelected) {
             if (!isSelectionClean) {
@@ -171,8 +211,10 @@ export class Grid extends Component<GridProps, GridState> {
             return "selected"
         } else if (isAssigned) {
             return "assigned"
+        } else if (!isNone) {
+            return "normal"
         }
-        return "normal"
+        return "none"
     }
 
     private clampX(x: number): number {
@@ -217,7 +259,7 @@ export class Grid extends Component<GridProps, GridState> {
             estimatedValue = 0
         }
 
-        const target = TARGETS[this.state.targetIndex]
+        const target = this.currentLevel.targets[this.state.targetIndex]
         const isSelectionTooLarge = this.state.value + estimatedValue > target
 
         const valueCssClass = estimatedValue == 0 ? "" : (isSelectionTooLarge ? "text-danger" : "text-success")
@@ -238,7 +280,7 @@ export class Grid extends Component<GridProps, GridState> {
             <div className="header">
                 <div className="value-box">
                     <h5>Target</h5>
-                    <h3>{ TARGETS[this.state.targetIndex] }</h3>
+                    <h3>{ this.currentLevel.targets[this.state.targetIndex] }</h3>
                 </div>
                 <div className="value-box">
                     <h5>Value</h5>
