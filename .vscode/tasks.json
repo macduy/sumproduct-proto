@@ -36,7 +36,7 @@
             "command": "python3 -m http.server",
             "isBackground": true,
             "options": {
-                "cwd": "${workspaceRoot}/game"
+                "cwd": "${workspaceRoot}/docs"
             },
             "problemMatcher": []
         }
