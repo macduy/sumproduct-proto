@@ -61,7 +61,8 @@ module.exports = {
   },
   output: {
     filename: 'js/app.js',
-    path: path.resolve(__dirname, 'game')
+    // Export to /docs so we can leverage Github page hosting.
+    path: path.resolve(__dirname, 'docs')
   },
   plugins: [
     new MiniCssExtractPlugin({

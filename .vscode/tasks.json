@@ -3,7 +3,6 @@
     "tasks": [
         {
             "label": "Startup",
-            "type": "shell",
             "dependsOn": [
                 "Build & Watch",
                 "Serve HTTP"
