@@ -1,10 +1,10 @@
 import { LevelPack, LevelSpec } from "levels"
-import { xySelection } from "types"
+import { XYSelection } from "types"
 
 const level1: LevelSpec = {
     setup: {
         emptyCells: [
-            xySelection([3, 6], [3, 6])
+            XYSelection.range([3, 6], [3, 6])
         ],
     },
     targets: [16]
@@ -13,9 +13,9 @@ const level1: LevelSpec = {
 const level2: LevelSpec = {
     setup: {
         emptyCells: [
-            xySelection([2, 7], [2, 4]),
-            xySelection([5, 7], [5, 7]),
-            xySelection(4, 7)
+            XYSelection.range([2, 7], [2, 4]),
+            XYSelection.range([5, 7], [5, 7]),
+            XYSelection.range(4, 7)
         ],
     },
     targets: [28],
@@ -24,7 +24,7 @@ const level2: LevelSpec = {
 const level3: LevelSpec = {
     setup: {
         emptyCells: [
-            xySelection([0, 9], [0, 9])
+            XYSelection.range([0, 9], [0, 9])
         ],
     },
     targets: [36, 29, 12, 18, 5]

@@ -2,7 +2,7 @@ import { Cell, CellState } from "elements/cell"
 import { LevelPack, LevelSpec } from "levels"
 import * as React from "react"
 import { Component } from "react"
-import { iterate, XYSelection } from "types"
+import { XYSelection } from "types"
 
 
 interface GridCellData {
@@ -137,7 +137,7 @@ export class Grid extends Component<GridProps, GridState> {
         } else {
             // Mark the grid cell data.
             console.log("continue")
-            iterate(s, (x, y) => this.state.gridCellData[x][y].block = 1)
+            s.iterate((x, y) => this.state.gridCellData[x][y].block = 1)
             this.setState({
                 value: this.state.value + selectionValue,
                 score: newScore,
@@ -152,7 +152,7 @@ export class Grid extends Component<GridProps, GridState> {
         const levelSpec = this.props.levelPack.levels[index]
 
         for (const emptyCellsSpec of levelSpec.setup.emptyCells) {
-            iterate(emptyCellsSpec, (x, y) => { gridCellData[x][y].block = 0 })
+            emptyCellsSpec.iterate((x, y) => { gridCellData[x][y].block = 0 })
         }
 
         return gridCellData
@@ -182,20 +182,10 @@ export class Grid extends Component<GridProps, GridState> {
     private getNormalizedSelection(): XYSelection | undefined {
         if (!this.state.selectionStart) return undefined
         if (!this.state.selectionEnd) {
-            return {
-                minX: this.state.selectionStart.x,
-                maxX: this.state.selectionStart.x,
-                minY: this.state.selectionStart.y,
-                maxY: this.state.selectionStart.y,
-            }
+            return XYSelection.range(this.state.selectionStart.x, this.state.selectionStart.y)
         }
 
-        const minX = Math.min(this.state.selectionStart.x, this.state.selectionEnd.x)
-        const maxX = Math.max(this.state.selectionStart.x, this.state.selectionEnd.x)
-        const minY = Math.min(this.state.selectionStart.y, this.state.selectionEnd.y)
-        const maxY = Math.max(this.state.selectionStart.y, this.state.selectionEnd.y)
-
-        return {minX, maxX, minY, maxY}
+        return XYSelection.startEnd(this.state.selectionStart, this.state.selectionEnd)
     }
 
     private determineCellState(x: number, y: number, isSelectionClean: boolean): CellState {
