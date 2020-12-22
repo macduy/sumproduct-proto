@@ -4,10 +4,19 @@ import * as React from "react"
 import { Component } from "react"
 import { XYSelection } from "types"
 
-
-interface GridCellData {
-    block?: number
-}
+type GridCellData =
+    {
+        /** Non-playable, out of bounds cell. */
+        type: "null" /** YEAH */
+    } |
+    {
+        /** Empty, playable cell */
+        type: "empty"
+    } |
+    {
+        type: "assigned",
+        block: number
+    }
 
 const GRID_WIDTH = 10
 const GRID_HEIGHT = 10
@@ -56,7 +65,7 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onCellDown(x: number, y: number) {
-        if (this.state.gridCellData[x][y].block === undefined) return
+        if (this.state.gridCellData[x][y].type !== "empty") return
 
         this.setState({
             selectionStart: { x, y }
@@ -66,7 +75,7 @@ export class Grid extends Component<GridProps, GridState> {
     onCellMove(x: number, y: number) {
         if (!this.state.selectionStart) return
 
-        if (this.state.gridCellData[x][y].block === undefined) return
+        if (this.state.gridCellData[x][y].type !== "empty") return
 
         this.setState({
             selectionEnd: { x, y }
@@ -112,6 +121,8 @@ export class Grid extends Component<GridProps, GridState> {
         console.log("Score:", multiplier, scoreDelta)
         const newScore = this.state.score + scoreDelta
 
+        s.iterate((x, y) => this.state.gridCellData[x][y] = { type: "assigned", block: 1 })
+
         if (newValue == target) {
             // Target has been met. Advance target.
             if ((this.state.targetIndex + 1) < this.currentLevel.targets.length) {
@@ -137,7 +148,6 @@ export class Grid extends Component<GridProps, GridState> {
         } else {
             // Mark the grid cell data.
             console.log("continue")
-            s.iterate((x, y) => this.state.gridCellData[x][y].block = 1)
             this.setState({
                 value: this.state.value + selectionValue,
                 score: newScore,
@@ -152,7 +162,7 @@ export class Grid extends Component<GridProps, GridState> {
         const levelSpec = this.props.levelPack.levels[index]
 
         for (const emptyCellsSpec of levelSpec.setup.emptyCells) {
-            emptyCellsSpec.iterate((x, y) => { gridCellData[x][y].block = 0 })
+            emptyCellsSpec.iterate((x, y) => { gridCellData[x][y].type = "empty" })
         }
 
         return gridCellData
@@ -172,7 +182,8 @@ export class Grid extends Component<GridProps, GridState> {
 
         for (let x = s.minX; x <= s.maxX; x++) {
             for (let y = s.minY; y <= s.maxY; y++) {
-                if (this.state.gridCellData[x][y].block) return false
+                const cellData = this.state.gridCellData[x][y]
+                if (cellData.type !== "empty") return false
             }
         }
 
@@ -190,8 +201,8 @@ export class Grid extends Component<GridProps, GridState> {
 
     private determineCellState(x: number, y: number, isSelectionClean: boolean): CellState {
         const isSelected = this.isInsideSelection(x, y)
-        const isNone = this.state.gridCellData[x][y].block === undefined
-        const isAssigned = !isNone && this.state.gridCellData[x][y].block! > 0
+        const isNone = this.state.gridCellData[x][y].type === "null"
+        const isAssigned = this.state.gridCellData[x][y].type === "assigned"
 
         if (isSelected) {
             if (!isSelectionClean) {
@@ -306,7 +317,7 @@ function initializeGridData(width: number, height: number): GridCellData[][] {
     for (let x = 0; x < width; x++) {
         let column: GridCellData[] = []
         for (let y = 0; y < height; y++) {
-            column.push({})
+            column.push({ type: "null" })
         }
         data.push(column)
     }
