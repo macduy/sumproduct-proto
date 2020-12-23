@@ -41,7 +41,7 @@ const level4: LevelSpec = {
         ],
     },
     targets: [36, 29, 12, 18, 5],
-    ratingBands: [100, 200, 300],
+    ratingBands: [770, 800, 830],
 }
 
 export const BASE_LEVELS: LevelPack = {

@@ -19,6 +19,7 @@ export const NextLevelModal = (props: Props) => {
     }
 
     return <div className={`next-level-modal ${css}`}>
+        Level complete!
         <div>Score: {props.score}</div>
         <div className="star-rating">{ ratingStars }</div>
         <button onClick={props.onRestartLevel}>Restart Level</button>
