@@ -1,7 +1,7 @@
 import { Cell, CellState } from "elements/cell"
 import { NextLevelModal } from "elements/modals"
 import { ScoreEffect } from "elements/score"
-import { LevelPack, LevelSpec } from "levels"
+import { evaluateRating, LevelPack, LevelSpec } from "levels"
 import * as React from "react"
 import { Component } from "react"
 import { XYSelection } from "types"
@@ -47,6 +47,7 @@ interface GridState {
 
     levelScore: number
     totalScore: number
+    levelRating: number
 }
 
 export class Grid extends Component<GridProps, GridState> {
@@ -66,7 +67,8 @@ export class Grid extends Component<GridProps, GridState> {
             value: 0,
             attempt: 0,
             levelScore: 0,
-            totalScore: 0
+            totalScore: 0,
+            levelRating: 0,
         }
     }
 
@@ -176,10 +178,11 @@ export class Grid extends Component<GridProps, GridState> {
                 value: this.state.value + selectionValue,
                 attempt: this.state.attempt + 1,
 
-                isLevelFinished: true,
                 levelScore: newLevelScore,
                 totalScore: newTotalScore,
+                levelRating: evaluateRating(newLevelScore, this.currentLevel.ratingBands)
             })
+            setTimeout(() => this.setState({ isLevelFinished: true }), 16)
         }
     }
 
@@ -193,6 +196,19 @@ export class Grid extends Component<GridProps, GridState> {
             isLevelFinished: false,
 
             levelScore: 0,
+        })
+    }
+
+    private restartLevel() {
+        this.setState({
+            gridCellData: this.createGridCellDataForLevel(this.state.currentLevel),
+            targetIndex: 0,
+            value: 0,
+            attempt: 0,
+            isLevelFinished: false,
+
+            levelScore: 0,
+            totalScore: this.state.totalScore - this.state.levelScore
         })
     }
 
@@ -326,7 +342,6 @@ export class Grid extends Component<GridProps, GridState> {
                         <h3 className="half-size">{ this.state.totalScore.pad(6) }</h3>
                     </div>
                 </div>
-                <ScoreEffect ref={this.scoreEffectRef} />
                 <div className="value-box">
                     <h5>Target {targetIndex + 1}/{totalTargets}</h5>
                     <h3>{ this.currentLevel.targets[targetIndex] }</h3>
@@ -340,6 +355,9 @@ export class Grid extends Component<GridProps, GridState> {
                 style={{width: CELL_SIZE * GRID_WIDTH + 2, height: CELL_SIZE * GRID_HEIGHT + 2 }}
                 >
                 { cells }
+                <div className="score-effect-wrapper">
+                    <ScoreEffect ref={this.scoreEffectRef} />
+                </div>
                 <div key="interactor" className="interactor"
                     onMouseDown={(e) => this.onCellDown(...this.convertToCellCoords(e)) }
                     // onMouseUp={(e) => this.onCellUp() }
@@ -350,7 +368,18 @@ export class Grid extends Component<GridProps, GridState> {
 
                     />
             </div>
-            <NextLevelModal show={this.state.isLevelFinished} onNextLevel={() => this.advanceLevel() } />
+            <div>
+
+                <button onClick={() => this.restartLevel()}>Restart Level</button>
+                <button onClick={() => this.advanceLevel()}>Skip Level</button>
+            </div>
+            <NextLevelModal
+                show={this.state.isLevelFinished}
+                score={this.state.levelScore}
+                rating={this.state.levelRating}
+                onRestartLevel={() => this.restartLevel() }
+                onNextLevel={() => this.advanceLevel() }
+                />
         </div>
     }
 }

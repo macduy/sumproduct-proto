@@ -113,7 +113,14 @@ h3 {
     &.half-size { font-size: 150%; }
 }
 
+.score-effect-wrapper {
+    position: absolute;
+    top: 10%;
+    left: 20%;
+}
+
 .score-effect {
+    pointer-events: none;
     position: relative;
     top: 0px;
     opacity: 1.0;
@@ -154,7 +161,17 @@ h3 {
     opacity: 0.0;
     transition: opacity 500ms;
 
+    pointer-events: none;
+
     &.show {
         opacity: 1.0;
+        pointer-events: auto;
+    }
+
+    .star-rating {
+        color: #888888;
+        i.filled {
+            color: gold;
+        }
     }
 }

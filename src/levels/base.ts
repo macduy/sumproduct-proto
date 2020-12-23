@@ -7,7 +7,8 @@ const level1: LevelSpec = {
             XYSelection.range([3, 6], [3, 6])
         ],
     },
-    targets: [16]
+    targets: [16],
+    ratingBands: [50, 100, 144],
 }
 
 const level2: LevelSpec = {
@@ -19,6 +20,7 @@ const level2: LevelSpec = {
         ],
     },
     targets: [28],
+    ratingBands: [120, 156, 192],
 }
 
 const level3: LevelSpec = {
@@ -27,7 +29,8 @@ const level3: LevelSpec = {
             XYSelection.range([2, 7], [2, 7])
         ],
     },
-    targets: [9, 16, 7, 4]
+    targets: [9, 16, 7, 4],
+    ratingBands: [284, 295, 300],
 }
 
 
@@ -37,7 +40,8 @@ const level4: LevelSpec = {
             XYSelection.range([0, 9], [0, 9])
         ],
     },
-    targets: [36, 29, 12, 18, 5]
+    targets: [36, 29, 12, 18, 5],
+    ratingBands: [100, 200, 300],
 }
 
 export const BASE_LEVELS: LevelPack = {
