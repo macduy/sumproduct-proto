@@ -1,9 +1,22 @@
-.no-user-select {
+.no-user-select() {
     user-select: none;
 }
 
+.depth-text(@color) {
+    @darkerColor: saturate(darken(@color, 20%), 5%);
+    .depth-text(@color, @darkerColor)
+}
+
+.depth-text(@color, @darkerColor) {
+    @depth: 4px;
+    @outline: 1px;
+    @lighterColor: lighten(@color, 10%);
+    color: @color;
+    text-shadow: -@outline @depth 0 @darkerColor, @outline @depth 0 @darkerColor, @outline -@outline 0 @darkerColor, -@outline -@outline 0 @darkerColor;
+}
+
 body {
-    font-family: "Chewy";
+    font-family: "Bungee";
     margin-top: 1em;
 }
 
@@ -20,14 +33,14 @@ body {
 }
 
 .grid {
-    .no-user-select;
+    .no-user-select();
     position: relative;
     box-sizing: content-box;
     background: #eeeeee;
 }
 
 .cell {
-    .no-user-select;
+    .no-user-select();
     display: block;
     position: absolute;
 
@@ -48,7 +61,7 @@ body {
 
     &.animatable {
         border-width: 10px;
-        transition: background-color 300ms, border-width 150ms, border-radius 350ms, border-color 100ms;
+    transition: background-color 300ms, border-width 150ms, border-radius 350ms, border-color 100ms;
     }
 }
 
@@ -70,8 +83,17 @@ h5 {
 }
 
 h3 {
+    .depth-text(#e6e6e6, #333333);
     font-size: 250%;
     margin-top: -0.1em;
     margin-bottom: -0.1em;
+
+    &.green {
+        .depth-text(green);
+    }
+
+    &.red {
+        .depth-text(rgb(196, 53, 84));
+    }
 }
 

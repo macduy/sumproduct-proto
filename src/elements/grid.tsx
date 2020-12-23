@@ -263,7 +263,7 @@ export class Grid extends Component<GridProps, GridState> {
         const target = this.currentLevel.targets[this.state.targetIndex]
         const isSelectionTooLarge = this.state.value + estimatedValue > target
 
-        const valueCssClass = estimatedValue == 0 ? "" : (isSelectionTooLarge ? "text-danger" : "text-success")
+        const valueCssClass = estimatedValue == 0 ? "" : (isSelectionTooLarge ? "red" : "green")
 
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
