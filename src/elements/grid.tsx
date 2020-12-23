@@ -1,8 +1,11 @@
 import { Cell, CellState } from "elements/cell"
+import { NextLevelModal } from "elements/modals"
+import { ScoreEffect } from "elements/score"
 import { LevelPack, LevelSpec } from "levels"
 import * as React from "react"
 import { Component } from "react"
 import { XYSelection } from "types"
+import "utils"
 
 type GridCellData =
     {
@@ -34,6 +37,7 @@ interface GridState {
 
     /** Current level. */
     currentLevel: number
+    isLevelFinished: boolean
 
     /** Index of the current target. */
     targetIndex: number
@@ -41,13 +45,13 @@ interface GridState {
     value: number
     attempt: number
 
-    score: number
-
+    levelScore: number
+    totalScore: number
 }
 
-
-
 export class Grid extends Component<GridProps, GridState> {
+    private scoreEffectRef = React.createRef<ScoreEffect>();
+
     get currentLevel(): LevelSpec {
         return this.props.levelPack.levels[this.state.currentLevel]
     }
@@ -58,9 +62,11 @@ export class Grid extends Component<GridProps, GridState> {
             currentLevel: 0,
             gridCellData: this.createGridCellDataForLevel(0),
             targetIndex: 0,
+            isLevelFinished: false,
             value: 0,
             attempt: 0,
-            score: 0,
+            levelScore: 0,
+            totalScore: 0
         }
     }
 
@@ -83,31 +89,40 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onCellUp() {
-        this.commitSelection()
+        console.log("Cell Up")
+        const s = this.getNormalizedSelection()
+
+        this.commitSelection(s)
         this.setState({
             selectionStart: undefined,
             selectionEnd: undefined,
         })
+        console.log("cel up finish", this.state.selectionStart)
     }
 
     onOutsideUp() {
-        this.commitSelection()
+        const s = this.getNormalizedSelection()
+        // Bug: Outside up gets triggered on selections of size 1.
+        // This would normally not need handling using outside up so we are going to skip.
+        if (s && s.size > 1) {
+            this.commitSelection(s)
+        }
+
         this.setState({
             selectionStart: undefined,
             selectionEnd: undefined,
         })
     }
 
-    commitSelection() {
-        const s = this.getNormalizedSelection()
+    commitSelection(s?: XYSelection) {
         if (!s) return
 
-        if (!this.checkSelectionClean()) {
+        if (!this.checkSelectionClean(s)) {
             return
         }
 
         // Calculate the added value.
-        const selectionValue = (s.maxX - s.minX + 1) * (s.maxY - s.minY + 1)
+        const selectionValue = s.size
 
         const target = this.currentLevel.targets[this.state.targetIndex]
         const newValue = this.state.value + selectionValue
@@ -117,43 +132,68 @@ export class Grid extends Component<GridProps, GridState> {
 
         // Calculate the score.
         const multiplier = 8 * Math.pow(0.5, this.state.attempt)
-        const scoreDelta = Math.max(1, Math.ceil(selectionValue * multiplier))
-        console.log("Score:", multiplier, scoreDelta)
-        const newScore = this.state.score + scoreDelta
+        const rawScore = selectionValue
+        const scoreDelta = Math.max(1, Math.ceil(rawScore * multiplier))
 
+        // Bonuses.
+        let bonus: { value: number, type: string } | undefined
+        if (s.isSquare) {
+            bonus = { value: s.size, type: "SQUARE BONUS"}
+        }
+
+        // Calculate new score.
+        const finalScoreDelta = scoreDelta + (bonus?.value ?? 0)
+        const newLevelScore = this.state.levelScore + finalScoreDelta
+        const newTotalScore = this.state.totalScore + finalScoreDelta
+
+        // Mark the grid cell data.
         s.iterate((x, y) => this.state.gridCellData[x][y] = { type: "assigned", block: 1 })
 
-        if (newValue == target) {
-            // Target has been met. Advance target.
-            if ((this.state.targetIndex + 1) < this.currentLevel.targets.length) {
-                // Target has been met. Advance target.
-                console.log("Advance target")
-                this.setState({
-                    targetIndex: this.state.targetIndex + 1,
-                    value: 0,
-                    score: newScore,
-                    attempt: 0,
-                })
-            } else {
-                // Advance level.
-                console.log("Advance level")
-                this.setState({
-                    currentLevel: this.state.currentLevel + 1,
-                    gridCellData: this.createGridCellDataForLevel(this.state.currentLevel + 1),
-                    targetIndex: 0,
-                    value: 0,
-                    attempt: 0,
-                })
-            }
-        } else {
-            // Mark the grid cell data.
-            console.log("continue")
+        // Announce score.
+        this.scoreEffectRef.current!.announce(rawScore, multiplier, bonus)
+
+        if (newValue != target) {
+            // Target not yet met.
             this.setState({
                 value: this.state.value + selectionValue,
-                score: newScore,
-                attempt: this.state.attempt + 1
+                attempt: this.state.attempt + 1,
+
+                levelScore: newLevelScore,
+                totalScore: newTotalScore,
+            })
+        } else if (this.state.targetIndex + 1 < this.currentLevel.targets.length) {
+            // Target has been met. Advance target.
+            this.setState({
+                targetIndex: this.state.targetIndex + 1,
+                value: 0,
+                attempt: 0,
+                levelScore: newLevelScore,
+                totalScore: newTotalScore,
+            })
+        } else {
+            // Level is now finished.
+            this.setState({
+                value: this.state.value + selectionValue,
+                attempt: this.state.attempt + 1,
+
+                isLevelFinished: true,
+                levelScore: newLevelScore,
+                totalScore: newTotalScore,
             })
         }
+    }
+
+    private advanceLevel() {
+        this.setState({
+            currentLevel: this.state.currentLevel + 1,
+            gridCellData: this.createGridCellDataForLevel(this.state.currentLevel + 1),
+            targetIndex: 0,
+            value: 0,
+            attempt: 0,
+            isLevelFinished: false,
+
+            levelScore: 0,
+        })
     }
 
     private createGridCellDataForLevel(index: number): GridCellData[][] {
@@ -172,12 +212,11 @@ export class Grid extends Component<GridProps, GridState> {
         const s = this.getNormalizedSelection()
         if (!s) return false
 
-        return (x >= s.minX && x <= s.maxX && y >= s.minY && y <= s.maxY)
+        return s.contains(x, y)
     }
 
     /** Checks if the selection only contains unassigned cells. */
-    private checkSelectionClean(): boolean {
-        const s = this.getNormalizedSelection()
+    private checkSelectionClean(s?: XYSelection): boolean {
         if (!s) return true
 
         for (let x = s.minX; x <= s.maxX; x++) {
@@ -250,15 +289,10 @@ export class Grid extends Component<GridProps, GridState> {
     render() {
         let cells: React.ReactChild[] = []
 
-        const isSelectionClean = this.checkSelectionClean()
         const s = this.getNormalizedSelection()
+        const isSelectionClean = this.checkSelectionClean(s)
 
-        let estimatedValue
-        if (isSelectionClean && s) {
-            estimatedValue = (s.maxX - s.minX + 1) * (s.maxY - s.minY + 1)
-        } else {
-            estimatedValue = 0
-        }
+        const estimatedValue = (isSelectionClean && s) ? s.size : 0
 
         const target = this.currentLevel.targets[this.state.targetIndex]
         const isSelectionTooLarge = this.state.value + estimatedValue > target
@@ -277,22 +311,30 @@ export class Grid extends Component<GridProps, GridState> {
             }
         }
 
+        const targetIndex = this.state.targetIndex
+        const totalTargets = this.currentLevel.targets.length
+
         return <div key="container" className="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
+                <div className="d-flex justify-content-between">
+                    <div>
+                        <h5>LEVEL SCORE</h5>
+                        <h3>{ this.state.levelScore.pad(4) }</h3>
+                    </div>
+                    <div className="text-right">
+                        <h5>TOTAL SCORE</h5>
+                        <h3 className="half-size">{ this.state.totalScore.pad(6) }</h3>
+                    </div>
+                </div>
+                <ScoreEffect ref={this.scoreEffectRef} />
                 <div className="value-box">
-                    <h5>Target</h5>
-                    <h3>{ this.currentLevel.targets[this.state.targetIndex] }</h3>
+                    <h5>Target {targetIndex + 1}/{totalTargets}</h5>
+                    <h3>{ this.currentLevel.targets[targetIndex] }</h3>
                 </div>
                 <div className="value-box">
                     <h5>Value</h5>
                     <h3 className={valueCssClass}>{ this.state.value + estimatedValue }</h3>
                 </div>
-                <div className="value-box">
-                    <h5>Score</h5>
-                    <h3>{ this.state.score }</h3>
-                </div>
-
-
             </div>
             <div key="grid" className="grid"
                 style={{width: CELL_SIZE * GRID_WIDTH + 2, height: CELL_SIZE * GRID_HEIGHT + 2 }}
@@ -300,7 +342,7 @@ export class Grid extends Component<GridProps, GridState> {
                 { cells }
                 <div key="interactor" className="interactor"
                     onMouseDown={(e) => this.onCellDown(...this.convertToCellCoords(e)) }
-                    onMouseUp={(e) => this.onCellUp() }
+                    // onMouseUp={(e) => this.onCellUp() }
                     onMouseMove={(e) => this.onCellMove(...this.convertToCellCoords(e)) }
                     onTouchStart={(e) => this.onCellDown(...this.convertTouchToCellCoords(e)) }
                     onTouchEnd={(e) => this.onCellUp() }
@@ -308,6 +350,7 @@ export class Grid extends Component<GridProps, GridState> {
 
                     />
             </div>
+            <NextLevelModal show={this.state.isLevelFinished} onNextLevel={() => this.advanceLevel() } />
         </div>
     }
 }

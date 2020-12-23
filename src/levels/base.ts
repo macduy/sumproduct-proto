@@ -24,6 +24,16 @@ const level2: LevelSpec = {
 const level3: LevelSpec = {
     setup: {
         emptyCells: [
+            XYSelection.range([2, 7], [2, 7])
+        ],
+    },
+    targets: [9, 16, 7, 4]
+}
+
+
+const level4: LevelSpec = {
+    setup: {
+        emptyCells: [
             XYSelection.range([0, 9], [0, 9])
         ],
     },
@@ -34,6 +44,7 @@ export const BASE_LEVELS: LevelPack = {
     levels: [
         level1,
         level2,
-        level3
+        level3,
+        level4,
     ],
 }

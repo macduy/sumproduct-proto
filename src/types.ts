@@ -5,6 +5,14 @@ export class XYSelection {
         readonly minY: number,
         readonly maxY: number) {}
 
+    get size(): number {
+        return (this.maxX - this.minX + 1) * (this.maxY - this.minY + 1)
+    }
+
+    get isSquare(): boolean {
+        return (this.maxX - this.minX) === (this.maxY - this.minY)
+    }
+
     /** Construct from a x-range and y-range. */
     static range(x: [number, number] | number, y: [number, number] | number): XYSelection {
         if (typeof x === "number") x = [x, x]
@@ -20,6 +28,10 @@ export class XYSelection {
         const maxY = Math.max(start.y, end.y)
 
         return new XYSelection(minX, maxX, minY, maxY)
+    }
+
+    contains(x: number, y: number): boolean {
+        return (x >= this.minX && x <= this.maxX && y >= this.minY && y <= this.maxY)
     }
 
     iterate(callback: (x: number, y: number) => void) {
