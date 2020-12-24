@@ -95,7 +95,6 @@ export class Grid extends Component<GridProps, GridState> {
     }
 
     onCellUp() {
-        console.log("Cell Up")
         const s = this.getNormalizedSelection()
 
         this.commitSelection(s)
@@ -103,7 +102,6 @@ export class Grid extends Component<GridProps, GridState> {
             selectionStart: undefined,
             selectionEnd: undefined,
         })
-        console.log("cel up finish", this.state.selectionStart)
     }
 
     onOutsideUp() {
@@ -386,23 +384,25 @@ export class Grid extends Component<GridProps, GridState> {
                         this.onCellDown(...this.convertToCellCoords(e))
                         e.preventDefault()
                         e.stopPropagation()
+                        return false
                     }}
                     onMouseUp={(e) => this.onCellUp() }
                     onMouseMove={(e) => {
                         this.onCellMove(...this.convertToCellCoords(e))
                         e.preventDefault()
                         e.stopPropagation()
+                        return false
                     }}
                     onTouchStart={(e) => {
                         this.onCellDown(...this.convertTouchToCellCoords(e))
-                        e.preventDefault()
                         e.stopPropagation()
+                        return false
                     }}
                     onTouchEnd={(e) => this.onCellUp() }
                     onTouchMove={(e) => {
                         this.onCellMove(...this.convertTouchToCellCoords(e))
-                        e.preventDefault()
                         e.stopPropagation()
+                        return false
                     }}
                     />
 
