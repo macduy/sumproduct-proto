@@ -504,7 +504,7 @@ export class Grid extends Component<GridProps, GridState> {
                 </div>
             </div>
             <div className="mt-1">
-                <button onClick={() => this.restartLevel()}><i className="fas fa-undo fa-fw mr-1" /> Restart Level</button>
+                <button onClick={() => this.restartLevel()}><i className="fas fa-undo fa-fw mr-1" /> Restart</button>
                 { nextLevelAvailable ? <button onClick={() => this.advanceLevel({ wait: false })}><i className="fas fa-fast-forward fa-fw mr-1" /> Skip Level</button> : null }
             </div>
             <Instructions />
