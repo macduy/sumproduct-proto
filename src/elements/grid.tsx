@@ -1,4 +1,5 @@
 import { Cell, CellState } from "elements/cell"
+import { Instructions } from "elements/instructions"
 import { NextLevelModal } from "elements/modals"
 import { ScoreEffect } from "elements/score"
 import { evaluateRating, LevelPack, LevelSpec } from "levels"
@@ -7,10 +8,16 @@ import { Component } from "react"
 import { XYSelection } from "types"
 import "utils"
 
+const LEVEL_COMPLETE_TIMEOUT_MS = 16
+
+const GRID_WIDTH = 10
+const GRID_HEIGHT = 10
+const CELL_SIZE = 35
+
 type GridCellData =
     {
         /** Non-playable, out of bounds cell. */
-        type: "null" /** YEAH */
+        type: "null"
     } |
     {
         /** Empty, playable cell */
@@ -20,10 +27,6 @@ type GridCellData =
         type: "assigned",
         block: number
     }
-
-const GRID_WIDTH = 10
-const GRID_HEIGHT = 10
-const CELL_SIZE = 35
 
 interface GridProps {
     levelPack: LevelPack
@@ -133,13 +136,13 @@ export class Grid extends Component<GridProps, GridState> {
         if (newValue > target) return
 
         // Calculate the score.
-        const multiplier = 8 * Math.pow(0.5, this.state.attempt)
+        const multiplier = Math.max(1, 4 - this.state.attempt)
         const rawScore = selectionValue
         const scoreDelta = Math.max(1, Math.ceil(rawScore * multiplier))
 
         // Bonuses.
         let bonus: { value: number, type: string } | undefined
-        if (s.isSquare) {
+        if (s.isSquare && s.size > 1) {
             bonus = { value: s.size, type: "SQUARE BONUS"}
         }
 
@@ -149,7 +152,7 @@ export class Grid extends Component<GridProps, GridState> {
         const newTotalScore = this.state.totalScore + finalScoreDelta
 
         // Mark the grid cell data.
-        s.iterate((x, y) => this.state.gridCellData[x][y] = { type: "assigned", block: 1 })
+        s.iterate((x, y) => this.state.gridCellData[x][y] = { type: "assigned", block: this.state.targetIndex })
 
         // Announce score.
         this.scoreEffectRef.current!.announce(rawScore, multiplier, bonus)
@@ -182,7 +185,7 @@ export class Grid extends Component<GridProps, GridState> {
                 totalScore: newTotalScore,
                 levelRating: evaluateRating(newLevelScore, this.currentLevel.ratingBands)
             })
-            setTimeout(() => this.setState({ isLevelFinished: true }), 16)
+            setTimeout(() => this.setState({ isLevelFinished: true }), LEVEL_COMPLETE_TIMEOUT_MS)
         }
     }
 
@@ -256,8 +259,12 @@ export class Grid extends Component<GridProps, GridState> {
 
     private determineCellState(x: number, y: number, isSelectionClean: boolean): CellState {
         const isSelected = this.isInsideSelection(x, y)
-        const isNone = this.state.gridCellData[x][y].type === "null"
-        const isAssigned = this.state.gridCellData[x][y].type === "assigned"
+
+        const cell = this.state.gridCellData[x][y]
+
+        const isNone = cell.type === "null"
+        const isAssigned = cell.type === "assigned"
+        const isCurrentTarget = cell.type === "assigned" && cell.block === this.state.targetIndex
 
         if (isSelected) {
             if (!isSelectionClean) {
@@ -266,6 +273,7 @@ export class Grid extends Component<GridProps, GridState> {
             }
             return "selected"
         } else if (isAssigned) {
+            if (isCurrentTarget) return "assigned-active"
             return "assigned"
         } else if (!isNone) {
             return "normal"
@@ -313,15 +321,18 @@ export class Grid extends Component<GridProps, GridState> {
         const target = this.currentLevel.targets[this.state.targetIndex]
         const isSelectionTooLarge = this.state.value + estimatedValue > target
 
-        const valueCssClass = estimatedValue == 0 ? "" : (isSelectionTooLarge ? "red" : "green")
-
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
+                const value = (x == this.state.selectionStart?.x && y == this.state.selectionStart.y)
+                    ? estimatedValue
+                    : undefined
+
                 cells.push(<Cell
                     x={x * CELL_SIZE}
                     y={y * CELL_SIZE}
                     key={`${x}_${y}`}
                     size={ CELL_SIZE }
+                    value={ value }
                     state={ this.determineCellState(x, y, isSelectionClean && !isSelectionTooLarge) }
                 />)
             }
@@ -329,6 +340,16 @@ export class Grid extends Component<GridProps, GridState> {
 
         const targetIndex = this.state.targetIndex
         const totalTargets = this.currentLevel.targets.length
+        const activeTarget = this.currentLevel.targets[this.state.targetIndex]
+        const nextLevelAvailable = this.state.currentLevel + 1 < this.props.levelPack.levels.length
+
+        /** The estimated total. */
+        const pendingFinalValue = this.state.value + estimatedValue
+
+        const targetCss =  this.state.value == 0 ? "blue" : (pendingFinalValue === activeTarget) ? "green" : ""
+        const currentCss = estimatedValue == 0 && pendingFinalValue !== activeTarget
+            ? (this.state.value == 0 ? "" : "blue")
+            : (isSelectionTooLarge ? "red" : "green")
 
         return <div key="container" className="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
@@ -343,42 +364,63 @@ export class Grid extends Component<GridProps, GridState> {
                     </div>
                 </div>
                 <div className="value-box">
-                    <h5>Target {targetIndex + 1}/{totalTargets}</h5>
-                    <h3>{ this.currentLevel.targets[targetIndex] }</h3>
+                    <h5>Target {targetIndex + 1}/<span className="lighter">{totalTargets}</span></h5>
+                    <h3 className={`animate-text ${targetCss}`}>{ this.currentLevel.targets[targetIndex] }</h3>
                 </div>
                 <div className="value-box">
-                    <h5>Value</h5>
-                    <h3 className={valueCssClass}>{ this.state.value + estimatedValue }</h3>
+                    <h5>Current</h5>
+                    <h3 className={`animate-text ${currentCss}`}>{ pendingFinalValue }</h3>
+                </div>
+                <div className="value-box">
+                    <h5>LVL</h5>
+                    <h3>{ this.state.currentLevel + 1 }</h3>
                 </div>
             </div>
             <div key="grid" className="grid"
                 style={{width: CELL_SIZE * GRID_WIDTH + 2, height: CELL_SIZE * GRID_HEIGHT + 2 }}
                 >
                 { cells }
+                <div key="interactor" className={"interactor " + (this.state.isLevelFinished ? "level-complete" : "")}
+                    onMouseDown={(e) => {
+                        this.onCellDown(...this.convertToCellCoords(e))
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }}
+                    onMouseUp={(e) => this.onCellUp() }
+                    onMouseMove={(e) => {
+                        this.onCellMove(...this.convertToCellCoords(e))
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }}
+                    onTouchStart={(e) => {
+                        this.onCellDown(...this.convertTouchToCellCoords(e))
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }}
+                    onTouchEnd={(e) => this.onCellUp() }
+                    onTouchMove={(e) => {
+                        this.onCellMove(...this.convertTouchToCellCoords(e))
+                        e.preventDefault()
+                        e.stopPropagation()
+                    }}
+                    />
+
                 <div className="score-effect-wrapper">
                     <ScoreEffect ref={this.scoreEffectRef} />
                 </div>
-                <div key="interactor" className="interactor"
-                    onMouseDown={(e) => this.onCellDown(...this.convertToCellCoords(e)) }
-                    // onMouseUp={(e) => this.onCellUp() }
-                    onMouseMove={(e) => this.onCellMove(...this.convertToCellCoords(e)) }
-                    onTouchStart={(e) => this.onCellDown(...this.convertTouchToCellCoords(e)) }
-                    onTouchEnd={(e) => this.onCellUp() }
-                    onTouchMove={(e) => this.onCellMove(...this.convertTouchToCellCoords(e)) }
-
-                    />
             </div>
-            <div>
-
+            <div className="mt-1">
                 <button onClick={() => this.restartLevel()}>Restart Level</button>
-                <button onClick={() => this.advanceLevel()}>Skip Level</button>
+                { nextLevelAvailable ? <button onClick={() => this.advanceLevel()}>Skip Level</button> : null }
             </div>
+            <Instructions />
             <NextLevelModal
                 show={this.state.isLevelFinished}
                 score={this.state.levelScore}
                 rating={this.state.levelRating}
                 onRestartLevel={() => this.restartLevel() }
                 onNextLevel={() => this.advanceLevel() }
+                nextLevelAvailable={ nextLevelAvailable }
                 />
         </div>
     }

@@ -44,3 +44,8 @@ export class ScoreEffect extends React.Component<Props, State> {
         </div>
     }
 }
+
+export const CurrentValueHighlighter = (props: { x: number, y: number, value: number, visible: boolean}) =>
+    <div className="highlighter" style={{top: props.y, left: props.x, visibility: props.visible ? "visible" : "hidden" }}>
+        { props.value }
+    </div>

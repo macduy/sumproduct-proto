@@ -6,6 +6,7 @@ interface Props {
     onRestartLevel: () => void
     score: number
     rating: number
+    nextLevelAvailable: boolean
 }
 
 export const NextLevelModal = (props: Props) => {
@@ -18,11 +19,12 @@ export const NextLevelModal = (props: Props) => {
         ratingStars.push(<i className="fas fa-star" />)
     }
 
-    return <div className={`next-level-modal ${css}`}>
-        Level complete!
+    return <div className={`next-level-modal ${css} text-center`}>
+        <h4>Level complete!</h4>
         <div>Score: {props.score}</div>
         <div className="star-rating">{ ratingStars }</div>
+        <br/>
         <button onClick={props.onRestartLevel}>Restart Level</button>
-        <button onClick={props.onNextLevel}>Next Level</button>
+        { props.nextLevelAvailable ? <button onClick={props.onNextLevel}>Next Level</button> : null }
     </div>
 }
