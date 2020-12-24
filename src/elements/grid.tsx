@@ -324,7 +324,7 @@ export class Grid extends Component<GridProps, GridState> {
 
         for (let y = 0; y < GRID_HEIGHT; y++) {
             for (let x = 0; x < GRID_WIDTH; x++) {
-                const value = (x == this.state.selectionStart?.x && y == this.state.selectionStart.y)
+                const value = (isSelectionClean && x == this.state.selectionStart?.x && y == this.state.selectionStart.y)
                     ? estimatedValue
                     : undefined
 
