@@ -78,24 +78,24 @@ export class Grid extends Component<GridProps, GridState> {
         }
     }
 
-    componentDidMount() {
-        const interactor = this.interactorRef.current!
-        const that = this
+    // componentDidMount() {
+    //     const interactor = this.interactorRef.current!
+    //     const that = this
 
-        // interactor.addEventListener('touchstart', (e) => {
-        //     this.onCellDown(...this.convertTouchToCellCoords(e))
-        //     e.stopPropagation()
-        //     e.preventDefault()
-        //     return false
-        // }, { passive: false })
-        // interactor.addEventListener('touchend', (e) => that.onCellUp())
-        // interactor.addEventListener('touchmove', (e) => {
-        //     this.onCellMove(...this.convertTouchToCellCoords(e))
-        //     e.preventDefault()
-        //     e.stopPropagation()
-        //     return false
-        // }, { passive: false})
-    }
+    //     interactor.addEventListener('touchstart', (e) => {
+    //         this.onCellDown(...this.convertTouchToCellCoords(e))
+    //         e.stopPropagation()
+    //         e.preventDefault()
+    //         return false
+    //     }, { passive: false })
+    //     interactor.addEventListener('touchend', (e) => that.onCellUp())
+    //     interactor.addEventListener('touchmove', (e) => {
+    //         this.onCellMove(...this.convertTouchToCellCoords(e))
+    //         e.preventDefault()
+    //         e.stopPropagation()
+    //         return false
+    //     }, { passive: false})
+    // }
 
     onCellDown(x: number, y: number) {
         if (this.state.gridCellData[x][y].type !== "empty") return
