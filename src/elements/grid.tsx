@@ -398,7 +398,13 @@ export class Grid extends Component<GridProps, GridState> {
                 </div>
                 <div className="value-box">
                     <h5>Target {targetIndex + 1}/<span className="lighter">{totalTargets}</span></h5>
-                    <h3 className={`animate-text ${targetCss}`}>{ this.currentLevel.targets[targetIndex] }</h3>
+                    <h3>
+                        <span className={`animate-text ${targetCss}`}>{ this.currentLevel.targets[targetIndex] }</span>
+                        { this.state.targetIndex + 1 < totalTargets ?
+                            <span className="next-target"> ..{ this.currentLevel.targets[this.state.targetIndex + 1] }</span>
+                            : undefined
+                        }
+                    </h3>
                 </div>
                 <div className="value-box">
                     <h5>Current</h5>

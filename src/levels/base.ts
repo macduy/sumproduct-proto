@@ -60,12 +60,12 @@ export const BASE_LEVELS: LevelPack = {
             setup: {
                 emptyCells: [
                     XYSelection.range([0, 2], [2, 5]),
-                    XYSelection.range([3, 4], [5, 5]),
-                    XYSelection.range([5, 8], [4, 7])
+                    XYSelection.range([3, 5], [4, 5]),
+                    XYSelection.range([6, 9], [4, 7])
                 ],
             },
-            targets: [14, 11, 7],
-            ratingBands: [130, 150, 163],
+            targets: [14, 13, 7],
+            ratingBands: [132, 140, 146],
         },
         /** Big Square */
         {
