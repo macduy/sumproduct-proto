@@ -84,11 +84,13 @@ export class Grid extends Component<GridProps, GridState> {
         interactor.addEventListener('touchstart', (e) => {
             this.onCellDown(...this.convertTouchToCellCoords(e))
             e.stopPropagation()
+            e.preventDefault()
             return false
         }, { passive: false })
         interactor.addEventListener('touchend', (e) => that.onCellUp())
         interactor.addEventListener('touchmove', (e) => {
             this.onCellMove(...this.convertTouchToCellCoords(e))
+            e.preventDefault()
             e.stopPropagation()
             return false
         }, { passive: false})
