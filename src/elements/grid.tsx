@@ -7,6 +7,7 @@ import * as React from "react"
 import { Component } from "react"
 import { XYSelection } from "types"
 import "utils"
+import { version } from "version"
 
 const LEVEL_COMPLETE_TIMEOUT_MS = 16
 
@@ -356,7 +357,7 @@ export class Grid extends Component<GridProps, GridState> {
                 <div className="d-flex justify-content-between">
                     <div>
                         <h5>LEVEL SCORE</h5>
-                        <h3>{ this.state.levelScore.pad(4) }</h3>
+                        <h3 onClick={() => alert(version)}>{ this.state.levelScore.pad(4) }</h3>
                     </div>
                     <div className="text-right">
                         <h5>TOTAL SCORE</h5>
