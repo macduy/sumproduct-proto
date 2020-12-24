@@ -4,19 +4,19 @@
     user-select: none;
 }
 
-.depth-text(@color, @depth: 4px) {
+.depth-text(@color, @depth: 4px, @glow: 0px) {
     @darkerColor: saturate(darken(@color, 20%), 5%);
-    .depth-text(@color, @darkerColor, @depth)
+    .depth-text(@color, @darkerColor, @depth, @glow);
 }
 
-.depth-text(@color, @darkerColor, @depth: 4px) {
+.depth-text(@color, @darkerColor, @depth: 4px, @glow: 0px) {
     @outline: 1px;
-    @lighterColor: lighten(@color, 10%);
     color: @color;
     -webkit-text-stroke: 1px @darkerColor;
     text-shadow:
         0.5px @depth 0 @darkerColor,
-        -0.5px @depth 0 @darkerColor;
+        -0.5px @depth 0 @darkerColor,
+        0 0 @glow @color;
     // text-shadow:
     //     -@outline @depth 0 @darkerColor,
     //     @outline @depth 0 @darkerColor,
@@ -168,21 +168,25 @@ h5 {
 h3 {
     .depth-text(#e6e6e6, #555555);
     font-size: 250%;
-
-    &.green {
-        .depth-text(rgb(39, 172, 99));
-    }
-
-    &.red {
-        .depth-text(rgb(196, 53, 84));
-    }
-
-    &.blue {
-        .depth-text(#4895de);
-    }
-
-    &.half-size { font-size: 150%; }
 }
+
+&.green {
+    .depth-text(rgb(39, 172, 99)) !important;
+}
+
+&.red {
+    .depth-text(rgb(196, 53, 84)) !important;
+}
+
+&.blue {
+    .depth-text(#4895de) !important;
+}
+
+&.yellow {
+    .depth-text(gold; @glow: 1em) !important;
+}
+
+&.half-size { font-size: 150%; }
 
 .score-effect-wrapper {
     pointer-events: none;
@@ -237,12 +241,15 @@ h3 {
     transition: opacity 800ms 0s, top 800ms @fastPop 0s;
 
     pointer-events: none;
+    overflow: auto;
+
+    max-height: 390px;
 
     &.show {
         opacity: 1.0;
         pointer-events: auto;
         top: 32%;
-        transition: opacity 800ms 1s, top 800ms @fastPop 1s;
+        transition: opacity 800ms 700ms, top 800ms @fastPop 800ms;
     }
 
     h4 {
@@ -252,7 +259,6 @@ h3 {
 
     .star-rating {
         color: #888888;
-        font-size: 200%;
         i.filled {
             color: gold;
         }

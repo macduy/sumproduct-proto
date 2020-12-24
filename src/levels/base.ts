@@ -37,7 +37,7 @@ export const BASE_LEVELS: LevelPack = {
         {
             setup: {
                 emptyCells: [
-                    XYSelection.range([2, 7], [2, 4]),
+                    XYSelection.range([2 , 7], [2, 4]),
                     XYSelection.range([5, 7], [5, 7]),
                     XYSelection.range(4, 7)
                 ],
@@ -64,6 +64,15 @@ export const BASE_LEVELS: LevelPack = {
             },
             targets: [36, 29, 12, 18, 5],
             ratingBands: [430, 450, 465],
+        },
+        {
+            setup: {
+                emptyCells: [
+                    XYSelection.range([2, 7], [4, 5])
+                ],
+            },
+            targets: [12],
+            ratingBands: [30, 40, 48],
         },
     ],
 }

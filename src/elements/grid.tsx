@@ -57,6 +57,7 @@ interface GridState {
 export class Grid extends Component<GridProps, GridState> {
     private scoreEffectRef = React.createRef<ScoreEffect>()
     private interactorRef = React.createRef<HTMLDivElement>()
+    private perLevelScores: {[index: number]: { score: number, rating: number }} = {}
 
     get currentLevel(): LevelSpec {
         return this.props.levelPack.levels[this.state.currentLevel]
@@ -196,29 +197,42 @@ export class Grid extends Component<GridProps, GridState> {
             })
         } else {
             // Level is now finished.
+            // Record score.
+            const starRating = evaluateRating(newLevelScore, this.currentLevel.ratingBands)
+            this.perLevelScores[this.state.currentLevel] = {
+                rating: starRating,
+                score: newLevelScore,
+            }
+            // Advance level.
             this.setState({
                 value: this.state.value + selectionValue,
                 attempt: this.state.attempt + 1,
 
                 levelScore: newLevelScore,
                 totalScore: newTotalScore,
-                levelRating: evaluateRating(newLevelScore, this.currentLevel.ratingBands)
+                levelRating: starRating
             })
             setTimeout(() => this.setState({ isLevelFinished: true }), LEVEL_COMPLETE_TIMEOUT_MS)
         }
     }
 
-    private advanceLevel() {
+    private advanceLevel(opts: { wait: boolean }) {
         this.setState({
-            currentLevel: this.state.currentLevel + 1,
-            gridCellData: this.createGridCellDataForLevel(this.state.currentLevel + 1),
-            targetIndex: 0,
-            value: 0,
-            attempt: 0,
             isLevelFinished: false,
-
-            levelScore: 0,
         })
+        setTimeout(() =>
+            this.setState({
+                currentLevel: this.state.currentLevel + 1,
+                gridCellData: this.createGridCellDataForLevel(this.state.currentLevel + 1),
+                targetIndex: 0,
+                value: 0,
+                attempt: 0,
+                isLevelFinished: false,
+
+                levelScore: 0,
+            }),
+            opts.wait ? 700 : 0
+        )
     }
 
     private restartLevel() {
@@ -433,16 +447,18 @@ export class Grid extends Component<GridProps, GridState> {
             </div>
             <div className="mt-1">
                 <button onClick={() => this.restartLevel()}>Restart Level</button>
-                { nextLevelAvailable ? <button onClick={() => this.advanceLevel()}>Skip Level</button> : null }
+                { nextLevelAvailable ? <button onClick={() => this.advanceLevel({ wait: false })}>Skip Level</button> : null }
             </div>
             <Instructions />
             <NextLevelModal
                 show={this.state.isLevelFinished}
                 score={this.state.levelScore}
+                totalScore={this.state.totalScore}
                 rating={this.state.levelRating}
                 onRestartLevel={() => this.restartLevel() }
-                onNextLevel={() => this.advanceLevel() }
+                onNextLevel={() => this.advanceLevel({ wait: true }) }
                 nextLevelAvailable={ nextLevelAvailable }
+                perLevelScores={{ levels: this.props.levelPack.levels.length, scores: this.perLevelScores }}
                 />
         </div>
     }
