@@ -55,6 +55,18 @@ export const BASE_LEVELS: LevelPack = {
             targets: [9, 16, 7, 4],
             ratingBands: [130, 150, 163],
         },
+        /** Galaxy */
+        {
+            setup: {
+                emptyCells: [
+                    XYSelection.range([0, 2], [2, 5]),
+                    XYSelection.range([3, 4], [5, 5]),
+                    XYSelection.range([5, 8], [4, 7])
+                ],
+            },
+            targets: [14, 11, 7],
+            ratingBands: [130, 150, 163],
+        },
         /** Big Square */
         {
             setup: {

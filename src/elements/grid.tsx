@@ -82,19 +82,19 @@ export class Grid extends Component<GridProps, GridState> {
         const interactor = this.interactorRef.current!
         const that = this
 
-        interactor.addEventListener('touchstart', (e) => {
-            this.onCellDown(...this.convertTouchToCellCoords(e))
-            e.stopPropagation()
-            e.preventDefault()
-            return false
-        }, { passive: false })
-        interactor.addEventListener('touchend', (e) => that.onCellUp())
-        interactor.addEventListener('touchmove', (e) => {
-            this.onCellMove(...this.convertTouchToCellCoords(e))
-            e.preventDefault()
-            e.stopPropagation()
-            return false
-        }, { passive: false})
+        // interactor.addEventListener('touchstart', (e) => {
+        //     this.onCellDown(...this.convertTouchToCellCoords(e))
+        //     e.stopPropagation()
+        //     e.preventDefault()
+        //     return false
+        // }, { passive: false })
+        // interactor.addEventListener('touchend', (e) => that.onCellUp())
+        // interactor.addEventListener('touchmove', (e) => {
+        //     this.onCellMove(...this.convertTouchToCellCoords(e))
+        //     e.preventDefault()
+        //     e.stopPropagation()
+        //     return false
+        // }, { passive: false})
     }
 
     onCellDown(x: number, y: number) {
@@ -333,8 +333,8 @@ export class Grid extends Component<GridProps, GridState> {
         ]
     }
 
-    private convertTouchToCellCoords(e: TouchEvent): [number, number] {
-        const rect = (e.target as any).getBoundingClientRect()
+    private convertTouchToCellCoords(e: React.TouchEvent): [number, number] {
+        const rect = (e.nativeEvent.target as any).getBoundingClientRect()
         const offsetX = e.touches[0].pageX - rect.left
         const offsetY = e.touches[0].pageY - rect.top
         return [
@@ -428,17 +428,17 @@ export class Grid extends Component<GridProps, GridState> {
                         e.stopPropagation()
                         return false
                     }}
-                    // onTouchStart={(e) => {
-                    //     this.onCellDown(...this.convertTouchToCellCoords(e))
-                    //     e.stopPropagation()
-                    //     return false
-                    // }}
-                    // onTouchEnd={(e) => this.onCellUp() }
-                    // onTouchMove={(e) => {
-                    //     this.onCellMove(...this.convertTouchToCellCoords(e))
-                    //     e.stopPropagation()
-                    //     return false
-                    // }}
+                    onTouchStart={(e) => {
+                        this.onCellDown(...this.convertTouchToCellCoords(e))
+                        e.stopPropagation()
+                        return false
+                    }}
+                    onTouchEnd={(e) => this.onCellUp() }
+                    onTouchMove={(e) => {
+                        this.onCellMove(...this.convertTouchToCellCoords(e))
+                        e.stopPropagation()
+                        return false
+                    }}
                     />
 
                 <div className="score-effect-wrapper">
