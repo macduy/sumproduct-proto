@@ -65,7 +65,7 @@ export const BASE_LEVELS: LevelPack = {
                 ],
             },
             targets: [14, 13, 7],
-            ratingBands: [132, 140, 146],
+            ratingBands: [140, 146, 148],
         },
         /** Big Square */
         {
@@ -75,7 +75,7 @@ export const BASE_LEVELS: LevelPack = {
                 ],
             },
             targets: [36, 29, 12, 18, 5],
-            ratingBands: [430, 450, 465],
+            ratingBands: [450, 465, 471],
         },
     ],
 }

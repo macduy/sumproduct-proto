@@ -9,6 +9,8 @@ import { XYSelection } from "types"
 import "utils"
 import { version } from "version"
 
+const VALUE_BOXES_V2 = true
+
 const LEVEL_COMPLETE_TIMEOUT_MS = 16
 
 const GRID_WIDTH = 10
@@ -58,6 +60,8 @@ export class Grid extends Component<GridProps, GridState> {
     private scoreEffectRef = React.createRef<ScoreEffect>()
     private interactorRef = React.createRef<HTMLDivElement>()
     private perLevelScores: {[index: number]: { score: number, rating: number }} = {}
+
+    private lastSelection?: XYSelection
 
     get currentLevel(): LevelSpec {
         return this.props.levelPack.levels[this.state.currentLevel]
@@ -146,6 +150,8 @@ export class Grid extends Component<GridProps, GridState> {
             return
         }
 
+        this.lastSelection = s
+
         // Calculate the added value.
         const selectionValue = s.size
 
@@ -163,7 +169,7 @@ export class Grid extends Component<GridProps, GridState> {
         // Bonuses.
         let bonus: { value: number, type: string } | undefined
         if (s.isSquare && s.size > 1) {
-            bonus = { value: s.size, type: "SQUARE BONUS"}
+            bonus = { value: s.size, type: "SQUARE"}
         }
 
         // Calculate new score.
@@ -389,37 +395,70 @@ export class Grid extends Component<GridProps, GridState> {
         /** The estimated total. */
         const pendingFinalValue = this.state.value + estimatedValue
 
-        const targetCss =  this.state.value == 0 ? "blue" : (pendingFinalValue === activeTarget) ? "green" : ""
-        const currentCss = estimatedValue == 0 && pendingFinalValue !== activeTarget
+        let valueBoxes: React.ReactChild
+        if (VALUE_BOXES_V2) {
+            const pendingRemainingTarget = activeTarget - pendingFinalValue
+            const targetCss = pendingRemainingTarget == 0
+                ? "yellow"
+                : (pendingRemainingTarget < 0)
+                    ? "red"
+                    : (estimatedValue == 0)
+                        ? "blue"
+                        : "green"
+
+            const negativeCss = pendingRemainingTarget < 0 ? "negative" : ""
+            valueBoxes = <>
+                <div className="value-box">
+                        <h5>Target {targetIndex + 1}/<span className="lighter">{totalTargets}</span></h5>
+                        <h3 className={negativeCss}>
+                            <span className={`animate-text ${targetCss}`}>{ pendingRemainingTarget < 0 ? `\x2D${-pendingRemainingTarget}` : pendingRemainingTarget }</span>
+                            { this.state.targetIndex + 1 < totalTargets ?
+                                <span className="next-target"> ..{ this.currentLevel.targets[this.state.targetIndex + 1] }</span>
+                                : undefined
+                            }
+                        </h3>
+                </div>
+                <div className="value-box">
+                    <h5>SCORE</h5>
+                    <h3>{ Math.max(1, 4 - this.state.attempt) }&times;</h3>
+                </div>
+            </>
+        } else {
+            const targetCss =  this.state.value == 0 ? "blue" : (pendingFinalValue === activeTarget) ? "green" : ""
+            const currentCss = estimatedValue == 0 && pendingFinalValue !== activeTarget
             ? (this.state.value == 0 ? "" : "blue")
             : (isSelectionTooLarge ? "red" : "green")
+            valueBoxes = <>
+                <div className="value-box">
+                        <h5>Target {targetIndex + 1}/<span className="lighter">{totalTargets}</span></h5>
+                        <h3>
+                            <span className={`animate-text ${targetCss}`}>{ this.currentLevel.targets[targetIndex] }</span>
+                            { this.state.targetIndex + 1 < totalTargets ?
+                                <span className="next-target"> ..{ this.currentLevel.targets[this.state.targetIndex + 1] }</span>
+                                : undefined
+                            }
+                        </h3>
+                </div>
+                <div className="value-box">
+                    <h5>Current</h5>
+                    <h3 className={`animate-text ${currentCss}`}>{ pendingFinalValue }</h3>
+                </div>
+            </>
+        }
 
         return <div key="container" className="container" onMouseUp={ () => this.onOutsideUp()}>
             <div className="header">
                 <div className="d-flex justify-content-between">
                     <div>
                         <h5>LEVEL SCORE</h5>
-                        <h3 onClick={() => alert(version)}>{ this.state.levelScore.pad(4) }</h3>
+                        <h3 onClick={() => alert(version)} className="score">{ this.state.levelScore.pad(4) }</h3>
                     </div>
                     <div className="text-right">
                         <h5>TOTAL SCORE</h5>
                         <h3 className="half-size">{ this.state.totalScore.pad(6) }</h3>
                     </div>
                 </div>
-                <div className="value-box">
-                    <h5>Target {targetIndex + 1}/<span className="lighter">{totalTargets}</span></h5>
-                    <h3>
-                        <span className={`animate-text ${targetCss}`}>{ this.currentLevel.targets[targetIndex] }</span>
-                        { this.state.targetIndex + 1 < totalTargets ?
-                            <span className="next-target"> ..{ this.currentLevel.targets[this.state.targetIndex + 1] }</span>
-                            : undefined
-                        }
-                    </h3>
-                </div>
-                <div className="value-box">
-                    <h5>Current</h5>
-                    <h3 className={`animate-text ${currentCss}`}>{ pendingFinalValue }</h3>
-                </div>
+                { valueBoxes }
                 <div className="value-box">
                     <h5>LVL</h5>
                     <h3>{ this.state.currentLevel + 1 }</h3>
@@ -457,13 +496,16 @@ export class Grid extends Component<GridProps, GridState> {
                     // }}
                     />
 
-                <div className="score-effect-wrapper">
+                <div className="score-effect-wrapper" style={{
+                        top: (this.lastSelection?.minY ?? 0) * CELL_SIZE,
+                        left: Math.min(GRID_WIDTH - 2, this.lastSelection?.minX ?? 0) * CELL_SIZE
+                    }}>
                     <ScoreEffect ref={this.scoreEffectRef} />
                 </div>
             </div>
             <div className="mt-1">
-                <button onClick={() => this.restartLevel()}>Restart Level</button>
-                { nextLevelAvailable ? <button onClick={() => this.advanceLevel({ wait: false })}>Skip Level</button> : null }
+                <button onClick={() => this.restartLevel()}><i className="fas fa-undo fa-fw mr-1" /> Restart Level</button>
+                { nextLevelAvailable ? <button onClick={() => this.advanceLevel({ wait: false })}><i className="fas fa-fast-forward fa-fw mr-1" /> Skip Level</button> : null }
             </div>
             <Instructions />
             <NextLevelModal

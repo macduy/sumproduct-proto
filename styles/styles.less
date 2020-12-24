@@ -177,10 +177,18 @@ h3 {
         vertical-align: -4px;
         display: inline-block;
     }
+
+    &.negative {
+        margin-left: -0.4em;
+    }
 }
 
 &.green {
     .depth-text(rgb(39, 172, 99)) !important;
+}
+
+&.green-glow {
+    .depth-text(rgb(39, 172, 99), @glow: 1em) !important;
 }
 
 &.red {
@@ -207,14 +215,17 @@ h3 {
 .score-effect {
     pointer-events: none;
     position: relative;
-    top: 0px;
+    bottom: 0px;
     opacity: 1.0;
     font-size: 125%;
     line-height: 1em;
     min-height: 4em;
+    white-space: nowrap;
 
     .score {
-        .depth-text(forestgreen; @depth: 2px);
+        font-size: 150%;
+        line-height: 125%;
+        .depth-text(limegreen; @depth: 2px; @glow: 10px);
     }
 
     .multiplier {
@@ -223,13 +234,13 @@ h3 {
     }
 
     .bonus {
-        .depth-text(gold; @depth: 2px);
+        .depth-text(gold; @depth: 2px; @glow: 20px);
     }
 
     &.animate-out {
-        top: -50px;
+        bottom: 50px;
         opacity: 0;
-        transition: top 1s cubic-bezier(0.3, 0.24, 0.8, -0.32), opacity 1s cubic-bezier(0.76, 0.07, 0.72,-0.28);
+        transition: bottom 1s cubic-bezier(0.3, 0.24, 0.8, -0.32), opacity 1s cubic-bezier(0.76, 0.07, 0.72,-0.28);
     }
 }
 
@@ -238,7 +249,7 @@ h3 {
     top: 25%;
     width: 80%;
     left: 10%;
-    border-radius: 4px;
+    border-radius: 8px;
 
     background-color: #bbbbbb;
     padding: 1em;
@@ -267,10 +278,27 @@ h3 {
     }
 
     .star-rating {
-        color: #888888;
+        .depth-text(#888888; @depth: 3px);
         i.filled {
-            color: gold;
+            .depth-text(gold; @depth: 3px; @glow: 0.5em);
         }
+    }
+}
+
+button {
+    border-radius: 4px;
+    background: #cccccc;
+    border: 1px solid #777777;
+    border-bottom-width: 4px;
+    margin-right: 1px;
+
+    &:active {
+        background-color: khaki;
+        border-color: darken(khaki, 30%);
+        border-bottom-width: 2px;
+        margin-bottom: 2px;
+        position: relative;
+        top: 2px;
     }
 }
 

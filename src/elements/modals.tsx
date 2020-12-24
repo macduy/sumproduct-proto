@@ -15,14 +15,14 @@ export const NextLevelModal = (props: Props) => {
     const css = props.show ? "show" : ""
 
     return <div className={`next-level-modal ${css} text-center`}>
-        <h4>Level complete!</h4>
+        <h4 className="yellow">Level complete!</h4>
         <div>Score: {props.score}</div>
         <div className="star-rating h2"><StarRating stars={props.rating} /></div>
         <br/>
-        <button onClick={props.onRestartLevel}>Restart Level</button>
+        <button onClick={props.onRestartLevel}><i className="fas fa-undo fa-fw mr-1" /> Restart</button>
         {
             props.nextLevelAvailable
-            ? <button onClick={props.onNextLevel}>Next Level</button>
+            ? <button onClick={props.onNextLevel}><i className="fas fa-fast-forward fa-fw mr-1" />Next</button>
             : <div className="mt-2">
                 Congratulations, you completed the game with a final score of <br/>
                 <h2 className="yellow display-4">{ props.totalScore }</h2>

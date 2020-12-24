@@ -38,8 +38,7 @@ export class ScoreEffect extends React.Component<Props, State> {
     render() {
         const css = this.state.state === "off" ? "animate-out" : ""
         return <div className={`score-effect ${css}`}>
-            <div className="score">+{ this.state.score} POINTS</div>
-            { this.state.multiplier > 1 ? <div className="multiplier">&times;{ this.state.multiplier } MULTIPLIER</div> : undefined }
+            <div className="score">+{ this.state.score * this.state.multiplier }</div>
             { this.state.bonus ? <div className="bonus">+{ this.state.bonus.value } { this.state.bonus.type }</div> : undefined }
         </div>
     }
