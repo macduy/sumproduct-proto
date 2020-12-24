@@ -9,3 +9,5 @@ Mental arithmetics game.
   - Some places recommend `width: 100%` and `height: 100%` on body
   - `overflow: hidden` and `position: relative` on body
     - Only this worked for the in-app browser in Facebook Messenger
+
+(Scroll broken on 0.38 again)

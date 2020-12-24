@@ -78,24 +78,24 @@ export class Grid extends Component<GridProps, GridState> {
         }
     }
 
-    // componentDidMount() {
-    //     const interactor = this.interactorRef.current!
-    //     const that = this
+    componentDidMount() {
+        const interactor = this.interactorRef.current!
+        const that = this
 
-    //     interactor.addEventListener('touchstart', (e) => {
-    //         this.onCellDown(...this.convertTouchToCellCoords(e))
-    //         e.stopPropagation()
-    //         e.preventDefault()
-    //         return false
-    //     }, { passive: false })
-    //     interactor.addEventListener('touchend', (e) => that.onCellUp())
-    //     interactor.addEventListener('touchmove', (e) => {
-    //         this.onCellMove(...this.convertTouchToCellCoords(e))
-    //         e.preventDefault()
-    //         e.stopPropagation()
-    //         return false
-    //     }, { passive: false})
-    // }
+        interactor.addEventListener('touchstart', (e) => {
+            this.onCellDown(...this.convertTouchToCellCoords(e))
+            e.stopPropagation()
+            e.preventDefault()
+            return false
+        }, { passive: false })
+        interactor.addEventListener('touchend', (e) => that.onCellUp())
+        interactor.addEventListener('touchmove', (e) => {
+            this.onCellMove(...this.convertTouchToCellCoords(e))
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+        }, { passive: false})
+    }
 
     onCellDown(x: number, y: number) {
         if (this.state.gridCellData[x][y].type !== "empty") return
@@ -333,7 +333,17 @@ export class Grid extends Component<GridProps, GridState> {
         ]
     }
 
-    private convertTouchToCellCoords(e: React.TouchEvent): [number, number] {
+    private convertTouchToCellCoords(e: TouchEvent): [number, number] {
+        const rect = (e.target as any).getBoundingClientRect()
+        const offsetX = e.touches[0].pageX - rect.left
+        const offsetY = e.touches[0].pageY - rect.top
+        return [
+            this.clampX(Math.floor(offsetX / CELL_SIZE)),
+            this.clampY(Math.floor(offsetY / CELL_SIZE)),
+        ]
+    }
+
+    convertTouchToCellCoordsForReact(e: React.TouchEvent): [number, number] {
         const rect = (e.nativeEvent.target as any).getBoundingClientRect()
         const offsetX = e.touches[0].pageX - rect.left
         const offsetY = e.touches[0].pageY - rect.top
@@ -434,17 +444,17 @@ export class Grid extends Component<GridProps, GridState> {
                         e.stopPropagation()
                         return false
                     }}
-                    onTouchStart={(e) => {
-                        this.onCellDown(...this.convertTouchToCellCoords(e))
-                        e.stopPropagation()
-                        return false
-                    }}
-                    onTouchEnd={(e) => this.onCellUp() }
-                    onTouchMove={(e) => {
-                        this.onCellMove(...this.convertTouchToCellCoords(e))
-                        e.stopPropagation()
-                        return false
-                    }}
+                    // onTouchStart={(e) => {
+                    //     this.onCellDown(...this.convertTouchToCellCoords(e))
+                    //     e.stopPropagation()
+                    //     return false
+                    // }}
+                    // onTouchEnd={(e) => this.onCellUp() }
+                    // onTouchMove={(e) => {
+                    //     this.onCellMove(...this.convertTouchToCellCoords(e))
+                    //     e.stopPropagation()
+                    //     return false
+                    // }}
                     />
 
                 <div className="score-effect-wrapper">
